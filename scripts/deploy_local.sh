@@ -45,6 +45,7 @@ cd -
 echo "Fixing log folder permissions"
 cd ${ROOT}
 mkdir -p logs
+mkdir -p file_archive
 
 echo "updating database"
 cd ${SITE_PATH}

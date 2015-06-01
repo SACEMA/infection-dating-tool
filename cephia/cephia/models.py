@@ -49,3 +49,18 @@ class Country(models.Model):
     
     def __unicode__(self):
         return self.code
+
+class FileInfo(models.Model):
+    class Meta:
+        db_table = "cephia_fileinfo"
+
+    STATES = [ ("pending", "Pending"), ("imported", "Imported"), ("error", "Error") ]
+    FILE_TYPES = [ ("test", "Test File"), ]
+        
+    filename = models.FileField(upload_to=settings.FILE_ARCHIVE_FOLDER)
+    state = models.CharField(max_length=20, null=False, choices=STATES)
+    message = models.TextField(null=True)
+    file_type = models.CharField(max_length=20, null=False, choices=FILE_TYPES)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    
