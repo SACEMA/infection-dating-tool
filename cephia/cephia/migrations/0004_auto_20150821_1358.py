@@ -29,6 +29,8 @@ def add_locations_studies(apps, schema_editor):
                           'description':'Options study - SIPP samples (large volume collections)'},
                          {'name':'ARCHIVE',
                           'description':'Options study - Archive samples (remnants from the old archive)'},
+                         {'name':'OPTIONS',
+                          'description':'Options study'},
                          {'name':'IAVI',
                           'description':'IAVI study - from core lab in London'},
                          {'name':'UCSD',

@@ -103,11 +103,14 @@ class TransferInFileHandler(FileHandler):
 
                 if not transfer_in_row.volume:
                     raise Exception('Volume is required')
+
+                if not transfer_in_row.volume_units:
+                    raise Exception('Volume units is required')
                 
                 if not transfer_in_row.number_of_containers:
-                    raise Exception('Number of containers is required')    
+                    raise Exception('Number of containers is required')
                 
-                if not self.registered_dates.get('drawdate', default_less_date) <= self.registered_dates.get('transfer_date', default_more_date):
+                if not self.registered_dates.get('drawdate', default_less_date) < self.registered_dates.get('transfer_date', default_more_date):
                     raise Exception('draw_date must be before transfer_date')
 
                 if not self.registered_dates.get('transfer_date', default_less_date) <= datetime.now().date():
@@ -128,10 +131,12 @@ class TransferInFileHandler(FileHandler):
                         raise Exception('volume must be greater than 90 for this specimen type')
 
                 if transfer_in_row.specimen_type == '2':
-                    if transfer_in_row.volume_units != 'cards':
-                        raise Exception('volume_units must be "cards" for this specimen')
-                    if float(transfer_in_row.volume or 0) > 20:
+                    if transfer_in_row.volume_units not in ['cards','microlitres']:
+                        raise Exception('volume_units must be either "cards" or "microlitres" for this specimen')
+                    if transfer_in_row.volume_units == 'cards' and float(transfer_in_row.volume or 0) > 20:
                         raise Exception('volume must be less than 20 for this specimen')
+                    if transfer_in_row.volume_units == 'microlitres' and float(transfer_in_row.volume or 0) < 90:
+                        raise Exception('volume must be greater than 90 for this specimen')
 
                 if transfer_in_row.specimen_type in ['5.1','5.2']:
                     if transfer_in_row.volume_units != 'grams':
@@ -140,10 +145,12 @@ class TransferInFileHandler(FileHandler):
                         raise Exception('volume must be less than 100 for this specimen')
 
                 if transfer_in_row.specimen_type == '7':
-                    if transfer_in_row.volume_units != 'm cells':
-                        raise Exception('volume_units must be "m cells" for this specimen_type')
-                    if float(transfer_in_row.volume or 0) > 20:
+                    if transfer_in_row.volume_units not in ['m cells', 'microlitres']:
+                        raise Exception('volume_units must be either "m cells" or "microlitres" for this specimen_type')
+                    if transfer_in_row.volume_units == 'm cells' and float(transfer_in_row.volume or 0) > 20:
                         raise Exception('volume must be less than 20 for this specimen')
+                    if transfer_in_row.volume_units == 'microlitres' and float(transfer_in_row.volume or 0) < 90:
+                        raise Exception('volume must be greater than 90 for this specimen')
 
                 if transfer_in_row.specimen_type in ['10.1','10.2']:
                     if transfer_in_row.volume_units != 'swabs':
@@ -174,7 +181,57 @@ class TransferInFileHandler(FileHandler):
         rows_inserted = 0
         rows_failed = 0
 
-        for transfer_in_row in TransferInRow.objects.filter(fileinfo=self.upload_file, state='validated'):
+        for transfer_in_row in TransferInRow.objects.filter(fileinfo=self.upload_file, state='validated', roll_up=False):
+            try:
+                self.register_dates(transfer_in_row.model_to_dict())
+                
+                with transaction.atomic():
+                    try:
+                        if transfer_in_row.subject_label == 'Unknown':
+                            subject = Subject.objects.create(subject_label='artificial_' + transfer_in_row.specimen_label)
+                            subject.aritificial = True
+                            subject.save()
+                        else:
+                            subject = Subject.objects.get(subject_label=transfer_in_row.subject_label)
+                    except Subject.DoesNotExist:
+                        subject = None
+                        pass
+                
+                    try:
+                        study = Study.objects.get(source_study=transfer_in_row.source_study)
+                    except Study.DoesNotExist:
+                        study = None
+                        pass
+                    
+                    specimen = Specimen.objects.create(specimen_label = transfer_in_row.specimen_label,
+                                                       subject_label = transfer_in_row.subject_label,
+                                                       reported_draw_date = self.registered_dates.get('drawdate', None),
+                                                       transfer_in_date = self.registered_dates.get('transfer_date', None),
+                                                       transfer_reason = transfer_in_row.transfer_reason,
+                                                       subject = subject,
+                                                       specimen_type = SpecimenType.objects.get(spec_type=transfer_in_row.specimen_type),
+                                                       number_of_containers = (transfer_in_row.number_of_containers or None),
+                                                       initial_claimed_volume = (transfer_in_row.volume or None),
+                                                       volume_units = transfer_in_row.volume_units,
+                                                       source_study = study,
+                                                       receiving_site = Site.objects.get(name=transfer_in_row.receiving_site))
+
+                    transfer_in_row.state = 'processed'
+                    transfer_in_row.date_processed = timezone.now()
+                    transfer_in_row.specimen = specimen
+                    transfer_in_row.save()
+                    rows_inserted += 1
+            except Exception, e:
+                logger.exception(e)
+                transfer_in_row.state = 'error'
+                transfer_in_row.error_message = e.message
+                transfer_in_row.save()
+
+                rows_failed += 1
+                continue
+
+        import pdb; pdb.set_trace()
+        for transfer_in_row in TransferInRow.objects.filter(fileinfo=self.upload_file, state='validated', roll_up=True):
             try:
                 self.register_dates(transfer_in_row.model_to_dict())
                 
@@ -190,55 +247,35 @@ class TransferInFileHandler(FileHandler):
                         subject = None
                         pass
                         
-                    if transfer_in_row.roll_up:
-                        roll_up_containers = 0
-                        roll_up_volume = 0
+                    roll_up_containers = 0
+                    roll_up_volume = 0
                         
-                        roll_up_rows = TransferInRow.objects.filter(specimen_label=transfer_in_row.specimen_label,
-                                                                    specimen_type=transfer_in_row.specimen_type,
-                                                                    fileinfo=self.upload_file)
+                    roll_up_rows = TransferInRow.objects.filter(specimen_label=transfer_in_row.specimen_label,
+                                                                specimen_type=transfer_in_row.specimen_type,
+                                                                fileinfo=self.upload_file)
 
-                        for r in roll_up_rows:
-                            roll_up_containers += int(r.number_of_containers)
-                            roll_up_volume += int(r.volume)
+                    for r in roll_up_rows:
+                        roll_up_containers += int(r.number_of_containers)
+                        roll_up_volume += int(r.volume)
 
-                        specimen = Specimen.objects.create(specimen_label = transfer_in_row.specimen_label,
-                                                           subject_label = transfer_in_row.subject_label,
-                                                           reported_draw_date = self.registered_dates.get('drawdate', None),
-                                                           transfer_in_date = self.registered_dates.get('transfer_date', None),
-                                                           transfer_reason = transfer_in_row.transfer_reason,
-                                                           subject = subject,
-                                                           specimen_type = SpecimenType.objects.get(spec_type=transfer_in_row.specimen_type),
-                                                           number_of_containers = (roll_up_containers or None),
-                                                           initial_claimed_volume = (roll_up_volume or None),
-                                                           volume_units = transfer_in_row.volume_units,
-                                                           source_study = None,
-                                                           receiving_site = Site.objects.get(name=transfer_in_row.receiving_site))
-                        for r in roll_up_rows:
-                            r.state = 'processed'
-                            r.date_processed = timezone.now()
-                            r.specimen = specimen
-                            r.save()
-                        rows_inserted += 1
-                    else:
-                        specimen = Specimen.objects.create(specimen_label = transfer_in_row.specimen_label,
-                                                           subject_label = transfer_in_row.subject_label,
-                                                           reported_draw_date = self.registered_dates.get('drawdate', None),
-                                                           transfer_in_date = self.registered_dates.get('transfer_date', None),
-                                                           transfer_reason = transfer_in_row.transfer_reason,
-                                                           subject = subject,
-                                                           specimen_type = SpecimenType.objects.get(spec_type=transfer_in_row.specimen_type),
-                                                           number_of_containers = (transfer_in_row.number_of_containers or None),
-                                                           initial_claimed_volume = (transfer_in_row.volume or None),
-                                                           volume_units = transfer_in_row.volume_units,
-                                                           source_study = None,
-                                                           receiving_site = Site.objects.get(name=transfer_in_row.receiving_site))
+                    specimen = Specimen.objects.create(specimen_label = transfer_in_row.specimen_label,
+                                                       subject_label = transfer_in_row.subject_label,
+                                                       reported_draw_date = self.registered_dates.get('drawdate', None),
+                                                       transfer_in_date = self.registered_dates.get('transfer_date', None),
+                                                       transfer_reason = transfer_in_row.transfer_reason,
+                                                       subject = subject,
+                                                       specimen_type = SpecimenType.objects.get(spec_type=transfer_in_row.specimen_type),
+                                                       number_of_containers = (roll_up_containers or None),
+                                                       initial_claimed_volume = (roll_up_volume or None),
+                                                       volume_units = transfer_in_row.volume_units,
+                                                       source_study = None,
+                                                       receiving_site = Site.objects.get(name=transfer_in_row.receiving_site))
+                    for r in roll_up_rows:
+                        r.state = 'processed'
+                        r.date_processed = timezone.now()
+                        r.specimen = specimen
+                        r.save()
 
-                        transfer_in_row.state = 'processed'
-                        transfer_in_row.date_processed = timezone.now()
-                        transfer_in_row.specimen = specimen
-                        transfer_in_row.save()
-                        rows_inserted += 1
             except Exception, e:
                 logger.exception(e)
                 transfer_in_row.state = 'error'
@@ -247,5 +284,6 @@ class TransferInFileHandler(FileHandler):
 
                 rows_failed += 1
                 continue
+
 
         return rows_inserted, rows_failed

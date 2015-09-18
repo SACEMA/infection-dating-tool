@@ -144,7 +144,7 @@ class SubjectFileHandler(FileHandler):
                         if self.registered_dates['date_of_death'] < value:
                             raise Exception('Date of death cannot be smaller than %s' % key)
 
-                if not self.registered_dates.get('last_negative_date', default_less_date) < self.registered_dates.get('first_positive_date', default_more_date):
+                if not self.registered_dates.get('last_negative_date', default_less_date) <= self.registered_dates.get('first_positive_date', default_more_date):
                     raise Exception('last_negative_date must be smaller than first_positive_date')
 
                 if not self.registered_dates.get('ars_onset_date', default_less_date) < self.registered_dates.get('first_positive_date', default_more_date):
