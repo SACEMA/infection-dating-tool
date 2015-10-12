@@ -36,6 +36,8 @@ urlpatterns = [
     url(r'^associate_specimen/(?P<subject_id>\d+)$', views.associate_specimen, name='associate_specimen_subject'),
     url(r'^row_comment/(?P<file_type>\w+)/(?P<file_id>\d+)/(?P<row_id>\d+)$', views.row_comment, name='row_comment'),
     url(r'^row_comment/$', views.row_comment, name='row_comment'),
+    url(r'^query_builder/$', views.query_builder, name='query_builder'),
+    url(r'^query_results/$', views.query_results, name='query_results'),
 
     url(r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'admin/cephia_login.html'}, name='auth_login'),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout_then_login', name='auth_logout'),

@@ -673,3 +673,41 @@ def row_comment(request, file_type=None, file_id=None, row_id=None, template="ce
         logger.exception(e)
         messages.add_message(request, messages.ERROR, 'Failed comment on row')
         return HttpResponseRedirect(reverse('file_info'))
+
+@login_required
+def query_builder(request, template="cephia/query_builder.html"):
+    try:
+        context = {}
+        form = QueryForm(request.POST or None)
+        
+        if request.method == 'POST':
+            form = QueryForm(initial=row.model_to_dict())
+        
+            context['query_form'] = form
+
+            response = render_to_response(template, context, context_instance=RequestContext(request))
+            return HttpResponse(json.dumps({'response': response.content}))
+    except Exception, e:
+        logger.exception(e)
+        messages.add_message(request, messages.ERROR, 'Failed comment on row')
+        return HttpResponseRedirect(reverse('file_info'))
+
+@login_required
+def query_results(request, template="cephia/query_table.html"):
+    try:
+        context = {}
+        form = QueryForm(request.POST or None)
+        
+        if request.method == 'POST':
+            form = QueryForm(initial=row.model_to_dict())
+        
+            context['query_form'] = form
+            context['data'] = {
+                'row_id':row_id.
+            }
+            response = render_to_response(template, context, context_instance=RequestContext(request))
+            return HttpResponse(json.dumps({'response': response.content}))
+    except Exception, e:
+        logger.exception(e)
+        messages.add_message(request, messages.ERROR, 'Failed comment on row')
+        return HttpResponseRedirect(reverse('file_info'))
