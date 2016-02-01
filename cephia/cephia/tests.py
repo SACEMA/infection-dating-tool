@@ -221,3 +221,28 @@ class TestVolumeArithmetic(TestBase):
         self.assertEqual(8500, Specimen.objects.get(specimen_label='AS10-10544').volume)
         self.assertEqual(250, Specimen.objects.get(specimen_label='1234-01').volume)
 
+class TestEDDICalculation(TestBase):
+    
+    def setUp(self):
+        super(TestEDDICalculation, self).setUp()
+        
+        self.subjects = self.create_fileinfo('subject.xlsx', 'test_case_008_eddi')
+        self.visits = self.create_fileinfo('visit.xlsx', 'test_case_008_eddi')
+        self.diagnostictests = self.create_fileinfo('diagnostic_tests.xlsx','test_case_008_eddi')
+        self.diagnostictestproperties = self.create_fileinfo('tests_properties.xlsx','test_case_008_eddi')
+        self.lookuptable = self.crate_fileinfo('lookup.xlsx','test_case_008_eddi')
+        self.diagnostictesthistory =  self.crate_fileinfo('test_history.xlsx','test_case_008_eddi')
+        
+    def test_case_001(self):
+        self.subjects.get_handler().parse()
+        self.subjects.get_handler().validate()
+        self.subjects.get_handler().process()
+
+        self.visits.get_handler().parse()
+        self.visits.get_handler().validate()
+        self.visits.get_handler().process()
+
+        call_command('associate_subject_visit')
+        
+
+
