@@ -223,14 +223,6 @@ if os.path.exists(os.path.join(PROJECT_HOME,"local_settings.py")):
 #
 #
     
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(LOG_FOLDER, "cephia.db")
-        }
-    }
-        
 #check that required settings are set
 if DATABASES['default']['ENGINE'] == 'django.db.backends.':
     raise Exception("Unconfigured databases setting, please correct in local_settings.py")

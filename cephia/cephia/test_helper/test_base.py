@@ -1,6 +1,7 @@
 from django.test import TestCase
 import logging
 from cephia.models import *
+from diagnostics.models import *
 from cephia.file_handlers.file_handler_register import *
 from django.core.files import File
 

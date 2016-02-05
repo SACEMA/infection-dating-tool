@@ -221,18 +221,24 @@ class TestVolumeArithmetic(TestBase):
         self.assertEqual(8500, Specimen.objects.get(specimen_label='AS10-10544').volume)
         self.assertEqual(250, Specimen.objects.get(specimen_label='1234-01').volume)
 
+        #import pdb; pdb.set_trace()
+
 class TestEDDICalculation(TestBase):
     
     def setUp(self):
         super(TestEDDICalculation, self).setUp()
         
+        #import pdb; pdb.set_trace()
+
         self.subjects = self.create_fileinfo('subject.xlsx', 'test_case_008_eddi')
         self.visits = self.create_fileinfo('visit.xlsx', 'test_case_008_eddi')
-        self.diagnostictests = self.create_fileinfo('diagnostic_tests.xlsx','test_case_008_eddi')
-        self.diagnostictestproperties = self.create_fileinfo('tests_properties.xlsx','test_case_008_eddi')
-        self.lookuptable = self.crate_fileinfo('lookup.xlsx','test_case_008_eddi')
-        self.diagnostictesthistory =  self.crate_fileinfo('test_history.xlsx','test_case_008_eddi')
-        
+        self.diagnostic_test = self.create_fileinfo('diagnostic_tests.xlsx','test_case_008_eddi')
+        self.test_property = self.create_fileinfo('tests_properties.xlsx','test_case_008_eddi')
+        self.protocol_lookup = self.create_fileinfo('lookup.xlsx','test_case_008_eddi')
+        self.test_history =  self.create_fileinfo('test_history.xlsx','test_case_008_eddi')
+
+        #import pdb; pdb.set_trace()
+
     def test_case_001(self):
         self.subjects.get_handler().parse()
         self.subjects.get_handler().validate()
@@ -241,8 +247,42 @@ class TestEDDICalculation(TestBase):
         self.visits.get_handler().parse()
         self.visits.get_handler().validate()
         self.visits.get_handler().process()
+        
+        self.assertEqual(1, Subject.objects.all().count())
+        self.assertEqual(2, Visit.objects.all().count())
 
         call_command('associate_subject_visit')
+        self.assertEqual(Visit.objects.all().count(), Visit.objects.filter(subject__isnull=False).count())
+        #import pdb; pdb.set_trace()
+
+
+        self.diagnostic_test.get_handler().process()
+        self.assertEqual(5, DiagnosticTest.objects.all().count())
         
+        self.test_property.get_handler().process()
+        self.assertEqual(8, TestPropertyEstimate.objects.all().count())
 
+        self.protocol_lookup.get_handler().process()
+        self.assertEqual(6, ProtocolLookup.objects.all().count())
+        
+        self.test_history.get_handler().parse()
+        self.assertEqual(6, DiagnosticTestHistoryRow.objects.all().count())
+        self.assertEqual(6, DiagnosticTestHistoryRow.objects.filter(fileinfo=self.test_history, state='pending').count())
 
+        self.test_history.get_handler().validate()
+        self.assertEqual(6, DiagnosticTestHistoryRow.objects.filter(fileinfo=self.test_history, state='validated').count())
+
+        self.test_history.get_handler().process()
+        self.assertEqual(6, DiagnosticTestHistoryRow.objects.filter(fileinfo=self.test_history, state='processed').count())
+        self.assertEqual(6, DiagnosticTestHistory.objects.all().count())
+
+                
+        call_command('eddi_update')
+        self.assertEqual(1, SubjectEDDI.objects.all().count())
+        self.assertEqual(1, Subject.objects.filter(subject_eddi__isnull=False).count())
+        self.assertEqual(2, VisitEDDI.objects.all().count())
+        self.assertEqual(2, Visit.objects.filter(visit_eddi__isnull=False).count())
+        
+        # add check that dates are correct
+        # add check that VDW size is correct
+        
