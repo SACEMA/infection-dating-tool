@@ -14,6 +14,9 @@ from django.conf import settings
 from diagnostics.forms import SubjectEDDIFilterForm, SubjectEDDIStatusForm
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.forms import modelformset_factory
+from django.core.management import call_command
+
 
 @login_required
 def eddi_report(request, template="diagnostics/eddi_report.html"):
@@ -29,32 +32,57 @@ def eddi_report(request, template="diagnostics/eddi_report.html"):
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 
+def subject_test_timeline(request, subject_id=None, template="cephia/subject_test_timeline.html"):
+    context = {}
+    context['subject_id'] = subject_id
+    return render_to_response(template, context, context_instance=RequestContext(request))
+
+def subject_timeline_data(request, subject_id=None, template="diagnostics/timeline_data.json"):
+    context = {}
+    context['tests'] = DiagnosticTestHistory.objects.filter(subject__id=subject_id)
+    context['subject'] = Subject.objects.get(pk=subject_id)
+    response = render_to_response(template, context, context_instance=RequestContext(request))
+    return HttpResponse(json.dumps({'response': response.content}))
 
 @csrf_exempt
 @login_required
 def eddi_report_detail(request, subject_id=None, template="diagnostics/eddi_report_detail_modal.html"):
     context = {}
+    TestHistoryModelFormset = modelformset_factory(DiagnosticTestHistory, fields=('ignore',))
     tests = DiagnosticTestHistory.objects.filter(subject__id=subject_id).order_by('test_date')
-    form = SubjectEDDIStatusForm(request.POST or None)
+    status_form = SubjectEDDIStatusForm(request.POST or None)
+    history_formset = TestHistoryModelFormset(request.POST or None, queryset=tests)
     subject = Subject.objects.get(pk=subject_id)
 
     if request.method == 'POST':
-        if form.is_valid():
-            subject_eddi_status = form.save()
+        if status_form.is_valid():
+            subject_eddi_status = status_form.save()
             subject.subject_eddi_status = subject_eddi_status
             subject.save()
-            data = {
-                'success': True,
-            }
-            json_data = json.dumps(data)
-            return HttpResponse(json_data, content_type='application/json')
+
+        if history_formset.is_valid():
+            history_formset.save()
+            subject.subject_eddi.recalculate = True
+            subject.subject_eddi.save()
+            
+        data = {
+            'success': True,
+        }
+        json_data = json.dumps(data)
+        return HttpResponse(json_data, content_type='application/json')
     elif request.method == 'GET':
         if subject.subject_eddi_status:
-            form = SubjectEDDIStatusForm(initial=subject.subject_eddi_status.model_to_dict())
-
+            status_form = SubjectEDDIStatusForm(initial=subject.subject_eddi_status.model_to_dict())
+        
         context['tests'] = tests
-        context['form'] = form
+        context['status_form'] = status_form
+        context['history_formset'] = history_formset
         context['subject'] = subject
 
     response = render_to_response(template, context, context_instance=RequestContext(request))
     return HttpResponse(json.dumps({'response': response.content}))
+
+
+def recalculate_eddi(request):
+    call_command('eddi_update')
+    return HttpResponseRedirect(reverse('diagnostics:eddi_report'))
