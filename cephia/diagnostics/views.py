@@ -16,6 +16,9 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.forms import modelformset_factory
 from django.core.management import call_command
+from pylab import figure, axes, pie, title
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+import matplotlib
 
 
 @login_required
@@ -86,3 +89,19 @@ def eddi_report_detail(request, subject_id=None, template="diagnostics/eddi_repo
 def recalculate_eddi(request):
     call_command('eddi_update')
     return HttpResponseRedirect(reverse('diagnostics:eddi_report'))
+
+
+def test_matplotlib(request):
+    f = figure(figsize=(6,6))
+    ax = axes([0.1, 0.1, 0.8, 0.8])
+    labels = 'Frogs', 'Hogs', 'Dogs', 'Logs'
+    fracs = [15,30,45, 10]
+    explode=(0, 0.05, 0, 0)
+    pie(fracs, explode=explode, labels=labels, autopct='%1.1f%%', shadow=True)
+    title('Raining Hogs and Dogs', bbox={'facecolor':'0.8', 'pad':5})
+
+    canvas = FigureCanvasAgg(f)    
+    response = HttpResponse(content_type='image/png')
+    matplotlib.pyplot.close(f)
+    canvas.print_png(response)
+    return response

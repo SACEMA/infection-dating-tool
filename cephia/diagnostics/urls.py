@@ -8,6 +8,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^eddi_report/', views.eddi_report, name='eddi_report'),
+    url(r'^test_matplotlib/', views.test_matplotlib, name='test_matplotlib'),
     url(r'^recalculate_eddi/', views.recalculate_eddi, name='recalculate_eddi'),
     url(r'^subject_test_timeline/(?P<subject_id>\d+)/$', views.subject_test_timeline, name='subject_test_timeline'),
     url(r'^subject_timeline_data/(?P<subject_id>\d+)/$', views.subject_timeline_data, name='subject_timeline_data'),
