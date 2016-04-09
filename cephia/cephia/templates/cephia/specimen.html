@@ -25,15 +25,15 @@
 {% block page_content %}
 
 {% paginate specimen %}
-<div class="container">
+<div class="container-fluid">
   <div class="row">
-    <div class="panel panel-default" style="box-shadow: 10px 10px 5px #888888;">
+    <div class="panel panel-info">
       <div class="panel-heading">
-        <h3 class="panel-title">Specimen</h3>
+        <h3 class="panel-title">Specimens</h3>
       </div>
       <div class="panel-body">
         <div class="row">
-          <div class="container"
+          <div class="container-fluid"
                {% show_pages %}
                <div class="btn-group">
                  <a href="#" class="btn btn-default" style="text-decoration:none;" onclick="submitFilterFormCSV();">Export as CSV</a>

@@ -21,15 +21,15 @@
 {% block page_content %}
 
 {% paginate files %}
-<div class="container">
+<div class="container-fluid">
   <div class="row">
-    <div class="panel panel-default" style="box-shadow: 10px 10px 5px #888888;">
+    <div class="panel panel-info">
       <div class="panel-heading">
         <h3 class="panel-title">Files</h3>
       </div>
       <div class="panel-body">
         <div class="row">
-          <div class="container">
+          <div class="container-fluid">
             {% show_pages %}
             <div class="table-responsive" style="height:auto; max-height:100%x; overflow:auto;">
               <table class="table-striped table table-hover" style="overflow:auto;">

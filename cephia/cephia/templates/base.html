@@ -5,14 +5,14 @@
 
 <html>
 
-  <title>Cephia</title>
+  <title>CEPHIA</title>
   <head>
     <meta charset="UTF-8" />
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/jquery-ui.min.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js'%}"></script>
-    <script src="{% static 'js/ripples.min.js'%}"></script>
-    <script src="{% static 'js/material.min.js'%}"></script>1
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/ripples.min.js' %}"></script>
+    <script src="{% static 'js/material.min.js'%}"></script>
     <script src="{% static 'js/cephia.js' %}"></script>
 
     <!-- menu items --> 
@@ -27,24 +27,18 @@
     <script>
       var config = { 'static_url' : "{% static '.' %}" };
     </script>
-
   </head>
 
-  <body class="{% block body_class %}{% endblock %}">
-
-    <div id="body_mask" class="alpha-mask" style="display:none"></div>
-
+  <body>
     {% load bootstrap3 %}
     <div class="messages">
       {% bootstrap_messages %}
     </div>
     {% block content %}
     {% endblock %}
-
-    <div style="clear:both">&nbsp;</div>
-    <script>
-      $.material.init();
-    </script>
+    
   </body>
-
+<script>
+  $.material.init();
+</script>
 </html>

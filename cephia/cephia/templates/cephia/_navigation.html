@@ -1,4 +1,4 @@
-<div class="navbar navbar-warning">
+<div class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-inverse-collapse">
@@ -6,13 +6,13 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="javascript:void(0)">Cephia</a>
+      <a class="navbar-brand" href="javascript:void(0)">CEPHIA</a>
     </div>
     <div class="navbar-collapse collapse navbar-inverse-collapse">
       <ul class="nav navbar-nav">
         {% if user.id %}
         <li class="dropdown">
-          <a href="#" data-target="#" class="dropdown-toggle" data-toggle="dropdown">Lookups<b class="caret"></b></a>
+          <a href="#" data-target="#" class="dropdown-toggle" data-toggle="dropdown">Clinical Data<b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li><a href="{% url 'subjects' %}">Subjects</a></li>
             <li><a href="{% url 'visits' %}">Visits</a></li>
@@ -21,7 +21,7 @@
         </li>
         {% if user.is_staff %}
         <li class="dropdown">
-          <a href="#" data-target="#" class="dropdown-toggle" data-toggle="dropdown">Operational<b class="caret"></b></a>
+          <a href="#" data-target="#" class="dropdown-toggle" data-toggle="dropdown">Data<b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li><a href="{% url 'file_info' %}">Files</a></li>
             <li><a href="{% url 'assay:panels' %}">Panels</a></li>
@@ -43,4 +43,3 @@
     </div>
   </div>
 </div>
-
