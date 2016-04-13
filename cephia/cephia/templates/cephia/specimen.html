@@ -27,17 +27,17 @@
 {% paginate specimen %}
 <div class="container-fluid">
   <div class="row">
-    <div class="panel panel-info">
+    <div class="panel panel-default">
       <div class="panel-heading">
         <h3 class="panel-title">Specimens</h3>
       </div>
       <div class="panel-body">
         <div class="row">
-          <div class="container-fluid"
-               {% show_pages %}
-               <div class="btn-group">
-                 <a href="#" class="btn btn-default" style="text-decoration:none;" onclick="submitFilterFormCSV();">Export as CSV</a>
-               </div>
+          <div class="container-fluid">
+            {% show_pages %}
+            <div class="btn-group">
+              <a href="#" class="btn btn-default" style="text-decoration:none;" onclick="submitFilterFormCSV();">Export as CSV</a>
+            </div>
             <div class="table-responsive">
               <table class="table-striped table table-hover" style="overflow:auto;">
                 <thead>
@@ -66,13 +66,13 @@
                     <td>{% if spec.parent_label %}{{spec.parent_label}} {% endif %}</td>
                     <td>{% if spec.number_of_containers %}{{spec.number_of_containers}}{% endif %}</td>
                     <td>
-	              {% if spec.reported_draw_date %}
-	              {% if spec.visit %}
-	              <a href="#">{{spec.reported_draw_date}}</a>
-	              {% else %}
-	              {{spec.reported_draw_date}}
-	              {% endif %}
-	              {% endif %}
+	                  {% if spec.reported_draw_date %}
+	                  {% if spec.visit %}
+	                  <a href="#">{{spec.reported_draw_date}}</a>
+	                  {% else %}
+	                  {{spec.reported_draw_date}}
+	                  {% endif %}
+	                  {% endif %}
                     </td>
                     <td>{% if spec.transfer_in_date %}{{spec.transfer_in_date}}{% endif %}</td>
                     <td>{% if spec.transfer_out_date %}{{spec.transfer_out_date}}{% endif %}</td>

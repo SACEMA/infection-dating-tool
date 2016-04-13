@@ -1,3 +1,4 @@
+{% load staticfiles %}
 <div class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -6,7 +7,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="javascript:void(0)">CEPHIA</a>
+      <img src="{% static 'images/CEPHIA.jpg' %}" style="height:75px; padding:5px;">
     </div>
     <div class="navbar-collapse collapse navbar-inverse-collapse">
       <ul class="nav navbar-nav">
