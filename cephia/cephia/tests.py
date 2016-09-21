@@ -19,8 +19,10 @@ class TestCase001(TestBase):
     def test_case_001(self):
         self.create_ethnicities()
         self.create_countries()
-        self.create_source_study()
-        self.create_specimen_type()
+        self.create_source_studies()
+        self.create_specimen_types()
+        self.create_locations()
+        self.create_laboratories()
         
         self.subjects.get_handler().parse()
         self.assertEqual(1, SubjectRow.objects.filter(fileinfo=self.subjects, state='pending').count())
@@ -77,6 +79,8 @@ class TestCase001(TestBase):
         self.transfer_outs.get_handler().parse()
         self.assertEqual(5, TransferOutRow.objects.filter(fileinfo=self.transfer_outs, state='pending').count())
 
+        # this file requires the following data in the db but it is not in the cephia db like the others we added at the top
+        Laboratory.objects.get_or_create(name='HPA', description='test site')
         self.transfer_outs.get_handler().validate()
         self.assertEqual(5, TransferOutRow.objects.filter(fileinfo=self.transfer_outs, state='validated').count())
 

@@ -103,7 +103,7 @@ class TransferOutFileHandler(FileHandler):
                 else:
                     specimen = specimen[0]
                     if specimen.parent:
-                        if self.registered_dates.get('shipment_date', default_more_date) < (specimen.created_date.date() or default_less_date):
+                        if self.registered_dates.get('shipment_date', default_more_date) < (specimen.created_date or default_less_date):
                             error_msg += "Shipment date cannot be before created date.\n"
                 
                 # ditto for these

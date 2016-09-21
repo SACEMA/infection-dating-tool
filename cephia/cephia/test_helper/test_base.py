@@ -306,7 +306,7 @@ class TestHelper(object):
         Country.objects.get_or_create(code="KR", name="South", region_id=1)
         Country.objects.get_or_create(code="KP", name="North", region_id=1)
 
-    def create_source_study(self):
+    def create_source_studies(self):
         Study.objects.get_or_create(name='IAVI', description='IAVI study - from core lab in London')
         Study.objects.get_or_create(name='UCSD', description='UCSD study, San Diego, CA')
         Study.objects.get_or_create(name='SCOPE', description='SCOPE study, San Francisco, CA')
@@ -323,7 +323,7 @@ class TestHelper(object):
         Study.objects.get_or_create(name='OPTIONS', description='Options study')
         Study.objects.get_or_create(name='SERACARE', description='')
 
-    def create_specimen_type(self):
+    def create_specimen_types(self):
         SpecimenType.objects.get_or_create(name='Whole Blood', spec_type=1, spec_group=1)
         SpecimenType.objects.get_or_create(name='DBS', spec_type=2, spec_group=2)
         SpecimenType.objects.get_or_create(name='Serum', spec_type=3, spec_group=3)
@@ -340,6 +340,42 @@ class TestHelper(object):
         SpecimenType.objects.get_or_create(name='Saliva / Pellets', spec_type=6.2, spec_group=6)
         SpecimenType.objects.get_or_create(name='Urine / Unknown', spec_type=4.9, spec_group=4)
         SpecimenType.objects.get_or_create(name='Stool / Unknown', spec_type=5.9, spec_group=5)
+
+    def create_locations(self):
+        Location.objects.get_or_create(name='PHE', description='PHE Location')
+        Location.objects.get_or_create(name='BSRI', description='SRI Location')
+        Location.objects.get_or_create(name='ASB', description='AIDS Specimen Bank')
+
+    def create_laboratories(self):
+        Laboratory.objects.get_or_create(name='PHE', description='Public Health England')
+        Laboratory.objects.get_or_create(name='BSRI-CIL', description='Blood Systems Research Institue')
+        Laboratory.objects.get_or_create(name='CDCD', description='Centers for Disease Control and Prevention, Domestic')
+        Laboratory.objects.get_or_create(name='CDCI', description='Centers for Disease Control and Prevention, International')
+        Laboratory.objects.get_or_create(name='JHU', description='Johns Hopkins University')
+        Laboratory.objects.get_or_create(name='ISI', description='Instituto Superiore di Sanita, Rome Italy')
+        Laboratory.objects.get_or_create(name='Maxim', description='Maxim Biomedical Inc, Rockville, Maryland')
+        Laboratory.objects.get_or_create(name='BioRad', description='BioRad, Hercules, CA')
+        Laboratory.objects.get_or_create(name='Calypte', description='Calypte Biomedical, Portland, OR')
+        Laboratory.objects.get_or_create(name='CBIO', description='ChemBio, Brazil')
+        Laboratory.objects.get_or_create(name='FDA', description='Food and Drug Administration; Usha Sharma')
+        Laboratory.objects.get_or_create(name='Immunetics', description='Immunetics; Andrew Levin, Boston')
+        Laboratory.objects.get_or_create(name='KEM', description='Kliniken Essen-Mitte, Germany')
+        Laboratory.objects.get_or_create(name='Metabolistics', description='Metabolistics, Canada')
+        Laboratory.objects.get_or_create(name='Pitt', description='Universityof Pittsburgh')
+        Laboratory.objects.get_or_create(name='Roederer', description='Mario Roederer, National Institues of Health')
+        Laboratory.objects.get_or_create(name='Sedia', description='Sedia Biosciences, Portland, OR')
+        Laboratory.objects.get_or_create(name='USC', description='University of Southern California, Ha Youn Lee')
+        Laboratory.objects.get_or_create(name='BGI', description='Beijing Genomics Institue, Hong Kong')
+        Laboratory.objects.get_or_create(name='CEK', description='CEK (Centro Esther Koplowitz), Barcelona, Spain')
+        Laboratory.objects.get_or_create(name='Duke', description='Duke University, Georgia Tomaras lab')
+        Laboratory.objects.get_or_create(name='ADi', description='Antigen Discovery, Irvine')
+        Laboratory.objects.get_or_create(name='AbDiag', description='RPC Diagnostic Systems, Russia')
+        Laboratory.objects.get_or_create(name='Avioq', description='Avioq, Inc., North Carolina')
+        Laboratory.objects.get_or_create(name='UCD', description='University College Dublin')
+        Laboratory.objects.get_or_create(name='UCSF-McCune', description='Ivan Vujikovic-Cvijin, McCune Laboratory')
+        Laboratory.objects.get_or_create(name='Maldarelli', description='Frank Malderelli, National Institues of Health')
+        Laboratory.objects.get_or_create(name='Glasgow', description='University of Glasgow')
+        Laboratory.objects.get_or_create(name='BSRI-Pillai', description='BSRI, Satish Paillai')
 
 class TestBase(TestCase, TestHelper):
     """ All tests should extend from this class """

@@ -89,18 +89,31 @@ class TransferInFileHandler(FileHandler):
         default_more_date = datetime.now().date() + relativedelta(years=75)
         rows_validated = 0
         rows_failed = 0
+        all_row_data = []
 
         for transfer_in_row in TransferInRow.objects.filter(fileinfo=self.upload_file, state='pending'):
             try:
                 error_msg = ''
                 self.register_dates(transfer_in_row.model_to_dict())
 
-                row_exists = TransferInRow.objects.filter(specimen_label=transfer_in_row.specimen_label,
+                row_data = TransferInRow.objects.filter(specimen_label=transfer_in_row.specimen_label,
                                                           specimen_type=transfer_in_row.specimen_type,
-                                                          fileinfo=self.upload_file).exists()
-                if row_exists:
+                                                          fileinfo=self.upload_file)
+
+                if row_data.first().id in all_row_data:
                     transfer_in_row.roll_up = True
                     transfer_in_row.save()
+                else:
+                    transfer_in_row.roll_up = False
+                    transfer_in_row.save()
+                    all_row_data.append(row_data.first().id)
+
+                # row_exists = TransferInRow.objects.filter(specimen_label=transfer_in_row.specimen_label,
+                #                                           specimen_type=transfer_in_row.specimen_type,
+                #                                           fileinfo=self.upload_file).exists()
+                # if row_exists:
+                #     transfer_in_row.roll_up = True
+                #     transfer_in_row.save()
 
                 exists = Specimen.objects.filter(specimen_label=transfer_in_row.specimen_label,
                                                  specimen_type__spec_type=transfer_in_row.specimen_type).exists()
@@ -189,7 +202,6 @@ class TransferInFileHandler(FileHandler):
         rows_failed = 0
         validated_records = TransferInRow.objects.filter(fileinfo=self.upload_file, state='validated', roll_up=False)
 
-        import pdb;pdb.set_trace()
         sql = """
         SELECT
         specimen_label,
