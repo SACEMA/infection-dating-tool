@@ -114,6 +114,10 @@ class TestCase003(TestBase):
         self.visits = self.create_fileinfo('visit.xlsx', 'test_case_003')
 
     def test_case_003(self):
+        self.create_ethnicities()
+        self.create_countries()
+        self.create_source_studies()
+        
         self.subjects.get_handler().parse()
         self.subjects.get_handler().validate()
         self.subjects.get_handler().process()

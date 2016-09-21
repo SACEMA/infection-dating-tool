@@ -127,7 +127,7 @@ class VisitFileHandler(FileHandler):
                 rows_failed += 1
                 visit_row.save()
                 continue
-
+            
         return rows_validated, rows_failed
 
     def process(self):
@@ -169,5 +169,5 @@ class VisitFileHandler(FileHandler):
                 visit_row.save()
                 rows_failed += 1
                 continue
-                    
+
         return rows_inserted, rows_failed

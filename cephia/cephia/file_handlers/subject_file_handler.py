@@ -206,7 +206,7 @@ class SubjectFileHandler(FileHandler):
                 subject_row.save()
                 rows_failed += 1
                 continue
-            
+
         return rows_validated, rows_failed
         
     def process(self):
@@ -263,5 +263,5 @@ class SubjectFileHandler(FileHandler):
                 subject_row.save()
                 rows_failed += 1
                 continue
-                    
+
         return rows_inserted, rows_failed
