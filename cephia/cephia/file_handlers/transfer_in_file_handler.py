@@ -193,6 +193,7 @@ class TransferInFileHandler(FileHandler):
                 transfer_in_row.save()
                 continue
 
+        import pdb;pdb.set_trace()
         return rows_validated, rows_failed
 
     def process(self):
@@ -327,4 +328,5 @@ class TransferInFileHandler(FileHandler):
                                                                                                     error_message=e.message)
                 rows_failed += 1
                 continue
+
         return rows_inserted, rows_failed
