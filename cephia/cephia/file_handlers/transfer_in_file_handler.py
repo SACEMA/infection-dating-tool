@@ -193,7 +193,6 @@ class TransferInFileHandler(FileHandler):
                 transfer_in_row.save()
                 continue
 
-        import pdb;pdb.set_trace()
         return rows_validated, rows_failed
 
     def process(self):
