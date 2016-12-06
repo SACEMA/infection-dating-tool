@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, render_to_response
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.template import RequestContext
 from forms import (
@@ -14,11 +14,13 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from user_management.models import AuthenticationToken
+from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login, get_user_model
 from django.contrib.auth.views import logout as django_logout
 from django.contrib.auth.models import Group
 from file_handlers.outside_eddi_test_history_file_handler import OutsideEddiFileHandler
 from cephia.models import CephiaUser
+from user_management.forms import UserPasswordForm
 from models import (
     Study, OutsideEddiDiagnosticTest, OutsideEddiTestPropertyEstimate,
     TestPropertyMapping, OutsideEddiFileInfo, OutsideEddiDiagnosticTestHistory,
@@ -33,6 +35,7 @@ import datetime
 from django.db import transaction
 from dateutil.relativedelta import relativedelta
 from django.db.models import Max
+from result_factory import ResultDownload
 
 
 def outside_eddi_login_required(login_url=None):
@@ -97,6 +100,7 @@ def outside_eddi_user_registration(request, template='outside_eddi/user_registra
     if request.method == 'POST':
         if form.is_valid():
             user = form.save()
+            user.send_registration_notification()
 
             tests = OutsideEddiDiagnosticTest.objects.all()
 
@@ -263,11 +267,13 @@ def edit_test(request, test_id=None, template='outside_eddi/edit_test.html', con
 
         if test.user:
             default_property_pk = request.POST['default_property']
+            user_test_properties = test_instance.properties.all().is_default = False
             if default_property_pk:
-                user_test_properties = test_instance.properties.all().is_default = False
                 default_property = OutsideEddiTestPropertyEstimate.objects.get(pk=default_property_pk)
-                default_property.is_default = True
-                default_property.save()
+            else:
+                default_property = test_instance.properties.all().order_by('-pk').first()
+            default_property.is_default = True
+            default_property.save()
 
         messages.info(request, 'Test edited successfully')
         if request.is_ajax():
@@ -292,6 +298,7 @@ def results(request, file_id=None, template="outside_eddi/results.html"):
 
     test_history_subjects = list(test_history.all().values_list('subject', flat=True).distinct())
     subjects = OutsideEddiSubject.objects.filter(pk__in=test_history_subjects)
+    download = ResultDownload(subjects)
 
     context['file'] = data_file
     context['subjects'] = subjects
@@ -547,6 +554,30 @@ def validate_mapping_from_page(request, file_id, context=None):
     validate_mapping(file_id, user)
 
     return test_mapping(request, file_id)
+
+
+def finalise_user_account(request, token, template='outside_eddi/complete_signup.html', hide_error_message=None):
+    context = {}
+
+    user = CephiaUser.objects.get(password_reset_token=token)
+    form = UserPasswordForm(request.POST or None, instance=user)
+
+    if request.method == 'POST':
+        if form.is_valid():
+            user_instance = form.save(user)
+            password = form.cleaned_data['password']
+            auth_user = authenticate(username=user_instance.username, password=password)
+            
+            if auth_user:
+                auth_login(request, auth_user)
+                auth_user.login_ok()
+                token = AuthenticationToken.create_token(auth_user)
+                return redirect("outside_eddi:data_files")
+
+    context['token'] = token
+    context['form'] = form
+
+    return render_to_response(template, context, context_instance=RequestContext(request))
 
 
 def _copy_diagnostic_tests():
