@@ -1,4 +1,6 @@
 venv
+old_venvs
+cephia/gtp_investigation_28April2021
 static_collected
 *pyc
 *~
