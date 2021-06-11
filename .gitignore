@@ -29,3 +29,6 @@ db_backup
 
 # Office cruft
 ~$*
+
+# Cahces
+.cache/
