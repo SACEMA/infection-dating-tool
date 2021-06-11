@@ -12,7 +12,7 @@ contextlib2==0.5.1
 cryptography==3.3.2
 cycler==0.10.0
 decorator==4.4.2
-Django==1.9.6
+Django==2.2.24
 django-bootstrap3==7.0.1
 django-celery==3.1.17
 django-countries==4.6.1
