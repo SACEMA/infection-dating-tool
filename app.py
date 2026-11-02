@@ -56,6 +56,9 @@ clinical data, and it is not intended to inform individual patient care.
   memory, and only for as long as necessary to process them and produce
   infection date estimates. Data are not written to disk and are discarded
   when your session ends. This is not guaranteed.
+- **Alternative to using this service:** This app is open source software. You 
+  can run it on your own hardware or in a validated environment. Obtain the 
+  software from [Github](https://github.com/eduardgrebe/infection-dating-tool).
 - The software is provided "as is", without warranty of any kind. The authors
   of the software and the providers of this service accept no responsibility
   for ensuring patient or research participant confidentiality, and accept no
@@ -68,6 +71,7 @@ clinical data, and it is not intended to inform individual patient care.
 # ---------------------------------------------------------------------------
 # Session state
 # ---------------------------------------------------------------------------
+
 
 def _init_state() -> None:
     defaults: dict = {
@@ -106,6 +110,7 @@ def _reset_session() -> None:
 # Terms of use gate
 # ---------------------------------------------------------------------------
 
+
 @st.dialog(TERMS_TITLE, width="large", dismissible=False)
 def _terms_dialog() -> None:
     st.markdown(TERMS_MD)
@@ -139,10 +144,10 @@ def _build_mappings(codes: list[str]) -> dict[str, dict]:
         if name and name != "— select —":
             props = get_test_properties(name)
             mappings[code] = {
-                "category":               props["category"],
-                "diagnostic_delay":       props["diagnostic_delay"],
+                "category": props["category"],
+                "diagnostic_delay": props["diagnostic_delay"],
                 "diagnostic_delay_sigma": props["diagnostic_delay_sigma"],
-                "detection_threshold":    props["detection_threshold"],
+                "detection_threshold": props["detection_threshold"],
             }
         else:
             mappings[code] = {}
@@ -159,6 +164,7 @@ def _all_mapped(codes: list[str]) -> bool:
 # ---------------------------------------------------------------------------
 # Step indicator
 # ---------------------------------------------------------------------------
+
 
 def _render_step_indicator() -> None:
     step = st.session_state.step
@@ -182,6 +188,7 @@ def _render_step_indicator() -> None:
 # ---------------------------------------------------------------------------
 # Step 1: Upload
 # ---------------------------------------------------------------------------
+
 
 def _step_upload() -> None:
     st.subheader("Upload participant test history")
@@ -236,6 +243,7 @@ def _step_upload() -> None:
 # ---------------------------------------------------------------------------
 # Step 2: Map test codes
 # ---------------------------------------------------------------------------
+
 
 def _step_map() -> None:
     df: pd.DataFrame = st.session_state.df
@@ -296,6 +304,7 @@ def _step_map() -> None:
 # Step 3: Parameters
 # ---------------------------------------------------------------------------
 
+
 def _step_params() -> None:
     st.subheader("Calculation parameters")
 
@@ -344,6 +353,7 @@ def _step_params() -> None:
 # Step 4: Calculate
 # ---------------------------------------------------------------------------
 
+
 def _step_calculate() -> None:
     df: pd.DataFrame = st.session_state.df
     codes = get_test_codes(df)
@@ -386,6 +396,7 @@ def _step_calculate() -> None:
 # ---------------------------------------------------------------------------
 # Step 5: Results
 # ---------------------------------------------------------------------------
+
 
 def _step_results() -> None:
     results: pd.DataFrame = st.session_state.results
