@@ -14,7 +14,7 @@ Five-step workflow:
 
 from __future__ import annotations
 
-import io
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -34,6 +34,35 @@ DATA_DIR = Path(__file__).parent / "data"
 EXAMPLE_DATA = DATA_DIR / "ExampleData.csv"
 
 STEP_LABELS = ["Upload", "Map Tests", "Parameters", "Calculate", "Results"]
+
+# Logs must never contain user data: log exception types only, never messages
+# or tracebacks, which can include participant IDs or other uploaded values.
+_LOGGER = logging.getLogger("infection_dating_tool")
+
+TERMS_TITLE = "Important — please read before continuing"
+TERMS_MD = """\
+This is a research tool. It is not designed or validated for use with sensitive
+clinical data, and it is not intended to inform individual patient care.
+
+- **Upload only fully deidentified data.** Do not include names, contact
+  details, medical record numbers or other identifiers, or any other personally
+  identifying information or protected health information (PHI). Use study
+  codes as participant identifiers. Exact dates can themselves be identifying;
+  consider shifting each participant's dates by a random offset.
+- **You are solely responsible** for ensuring that your use of this tool
+  complies with all applicable laws, regulations, ethical standards and
+  data-use agreements.
+- **Data handling:** the tool is designed to hold uploaded data only in server
+  memory, and only for as long as necessary to process them and produce
+  infection date estimates. Data are not written to disk and are discarded
+  when your session ends. This is not guaranteed.
+- The software is provided "as is", without warranty of any kind. The authors
+  of the software and the providers of this service accept no responsibility
+  for ensuring patient or research participant confidentiality, and accept no
+  legal liability arising from use of the tool.
+
+**Do you accept these terms?**
+"""
 
 
 # ---------------------------------------------------------------------------
@@ -59,6 +88,47 @@ def _init_state() -> None:
 def _go(step: int) -> None:
     st.session_state.step = step
     st.rerun()
+
+
+def _reset_session() -> None:
+    """Discard all session data (uploads, mappings, results) and restart.
+
+    Terms acceptance is kept so the user is not asked again in the same session.
+    """
+    accepted = st.session_state.get("terms_accepted")
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.session_state.terms_accepted = accepted
+    st.rerun()
+
+
+# ---------------------------------------------------------------------------
+# Terms of use gate
+# ---------------------------------------------------------------------------
+
+@st.dialog(TERMS_TITLE, width="large", dismissible=False)
+def _terms_dialog() -> None:
+    st.markdown(TERMS_MD)
+    with st.container(horizontal=True):
+        if st.button("Yes, I accept", type="primary", key="terms_yes"):
+            st.session_state.terms_accepted = True
+            st.rerun()
+        if st.button("No", key="terms_no"):
+            st.session_state.terms_accepted = False
+            st.rerun()
+
+
+def _require_terms() -> None:
+    """Stop the script unless the user has accepted the terms this session."""
+    accepted = st.session_state.get("terms_accepted")
+    if accepted is True:
+        return
+    if accepted is False:
+        st.error("You cannot use this tool.", icon=":material/block:")
+        st.caption("To review the terms again, reload this page.")
+    else:
+        _terms_dialog()
+    st.stop()
 
 
 def _build_mappings(codes: list[str]) -> dict[str, dict]:
@@ -334,9 +404,7 @@ def _step_results() -> None:
 
     st.divider()
     if st.button("← Start over"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
+        _reset_session()
 
 
 # ---------------------------------------------------------------------------
@@ -348,20 +416,41 @@ st.set_page_config(
     layout="centered",
 )
 
-_init_state()
-
 st.title("Infection Dating Tool")
 st.caption(
     "Estimates plausible HIV infection intervals (EP-DDI, LP-DDI, EDDI) "
     "from diagnostic test histories."
 )
 
+_require_terms()
+
+_init_state()
+
 _render_step_indicator()
 
-{
+_STEPS = {
     1: _step_upload,
     2: _step_map,
     3: _step_params,
     4: _step_calculate,
     5: _step_results,
-}[st.session_state.step]()
+}
+
+try:
+    _STEPS[st.session_state.step]()
+except Exception as exc:  # noqa: BLE001 — deliberate catch-all; see below
+    # st.rerun()/st.stop() raise BaseException subclasses, so they pass through.
+    # Log only the exception type: messages and tracebacks may contain user data
+    # and logs are persisted by the host (e.g. Docker's log driver).
+    _LOGGER.error(
+        "Unhandled error in step %s: %s",
+        st.session_state.step,
+        type(exc).__name__,
+    )
+    st.error(
+        "Something went wrong while processing your data. "
+        "Please check your input file and try again.",
+        icon=":material/error:",
+    )
+    if st.button("← Start over", key="error_start_over"):
+        _reset_session()

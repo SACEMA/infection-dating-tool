@@ -56,6 +56,9 @@ RUN uv sync --frozen --no-install-project
 COPY --chown=appuser:appuser app.py ./
 COPY --chown=appuser:appuser core/ ./core/
 COPY --chown=appuser:appuser data/ ./data/
+# Streamlit config (privacy-relevant settings). Copy only config.toml, never
+# secrets.toml or anything else that may appear in .streamlit/.
+COPY --chown=appuser:appuser .streamlit/config.toml ./.streamlit/config.toml
 
 # Switch to non-root user
 USER appuser
