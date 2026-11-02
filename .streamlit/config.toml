@@ -12,3 +12,5 @@ showErrorDetails = "none"
 # downloads) is kept so a briefly dropped connection can resume. After this,
 # Streamlit discards the session's data.
 disconnectedSessionTTL = 120
+
+
