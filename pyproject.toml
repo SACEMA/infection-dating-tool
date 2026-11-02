@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "infection-dating-tool"
-version = "2.0.5"
+version = "2.0.6.dev0"
 description = "Estimates plausible HIV infection intervals (EP-DDI, LP-DDI, EDDI) from diagnostic test histories"
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }
-requires-python = ">=3.14"
+requires-python = ">=3.15.2"
 authors = [
     { name = "Eduard Grebe" },
     { name = "Alex Welte" },
@@ -18,19 +18,20 @@ authors = [
 ]
 
 dependencies = [
-    "streamlit>=1.60.0",
-    "pandas>=3.0.5",
-    "scipy>=1.18.0",
-    "numpy>=2.5.1",
-    "matplotlib>=3.11.1",
-    "python-dateutil>=2.9",
-    "openpyxl>=3.1",
+    "streamlit>=1.66.1",
+    "pandas>=3.1.0",
+    "scipy>=1.18.1",
+    "numpy>=2.5.4",
+    "matplotlib>=3.11.2",
+    "python-dateutil>=4.0.0",
+    "openpyxl>=3.1.5",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=9.1.1",
-    "pytest-cov>=7.1",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.2",
 ]
 
 [tool.hatch.build.targets.wheel]
