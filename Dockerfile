@@ -5,7 +5,7 @@
 # Multi-architecture Docker image for the Streamlit web application
 # Supports: linux/amd64, linux/arm64
 
-FROM python:3.14-slim
+FROM python:3.15.2-slim
 
 # Metadata
 LABEL org.opencontainers.image.title="HIV Infection Dating Tool"
@@ -18,6 +18,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    # Use the image's Python; fail the build rather than download another one
+    UV_PYTHON_DOWNLOADS=never \
     # Streamlit configuration
     STREAMLIT_SERVER_PORT=8502 \
     STREAMLIT_SERVER_ADDRESS=0.0.0.0 \
@@ -56,6 +58,9 @@ RUN uv sync --frozen --no-install-project
 COPY --chown=appuser:appuser app.py ./
 COPY --chown=appuser:appuser core/ ./core/
 COPY --chown=appuser:appuser data/ ./data/
+# Streamlit config (privacy-relevant settings). Copy only config.toml, never
+# secrets.toml or anything else that may appear in .streamlit/.
+COPY --chown=appuser:appuser .streamlit/config.toml ./.streamlit/config.toml
 
 # Switch to non-root user
 USER appuser

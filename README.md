@@ -68,6 +68,39 @@ An example input file is available for download within the app, or directly at
 4. **Calculate** — run the EDDI estimation
 5. **Results** — view and download the results table (Participant, EP-DDI, LP-DDI, Interval Size, EDDI, Flags)
 
+## Data handling and privacy
+
+This is a research tool and is not designed for use with sensitive clinical data.
+Users must accept terms of use before using the app: they may upload only fully
+deidentified data and are solely responsible for regulatory and ethical
+compliance. Exact dates can themselves be identifying (e.g. under HIPAA Safe
+Harbor); because estimates depend only on the intervals between tests, shifting
+each participant's dates by a random offset gives correspondingly shifted results.
+
+The app is designed so that uploaded data are not written to disk and do not
+outlive the session:
+
+- Uploads, intermediate data, results and download files are held only in
+  Streamlit's in-memory session storage. No user data are cached across
+  sessions (`st.cache_data`/`st.cache_resource` are not used on user data).
+- Session data are discarded when the user clicks **Start over**, or when the
+  browser disconnects and `server.disconnectedSessionTTL` (120 s, see
+  `.streamlit/config.toml`) has elapsed.
+- Error details are never shown in the browser (`client.showErrorDetails =
+  "none"`), and unexpected errors are logged by exception type only, never with
+  messages or tracebacks that might contain uploaded values.
+
+Operators deploying the app publicly should also:
+
+- Use the reverse-proxy settings in `docker/nginx/conf.d/app.conf`, which stop
+  nginx from buffering uploads and downloads to temporary files on disk.
+- Run the container as configured in `docker-compose.yml` (read-only root
+  filesystem; `/tmp` on RAM-backed `tmpfs`).
+- Disable swap or use encrypted swap on the host, since process memory could
+  otherwise be paged to disk. Freed memory is not zeroed by Python.
+- Note that access logs record client IP addresses and request URLs (never file
+  contents).
+
 ## License
 
 Copyright of code derived or ported from the original Infection Dating Tool vests jointly in

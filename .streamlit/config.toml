@@ -1,0 +1,16 @@
+[browser]
+gatherUsageStats = false
+
+[client]
+# Never show exception messages or tracebacks in the browser: they can echo
+# uploaded values back and reveal internals. Unexpected errors are shown as a
+# generic message instead.
+showErrorDetails = "none"
+
+[server]
+# Seconds a disconnected session (and its in-memory uploads, results and
+# downloads) is kept so a briefly dropped connection can resume. After this,
+# Streamlit discards the session's data.
+disconnectedSessionTTL = 120
+
+
